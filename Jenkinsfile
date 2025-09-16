@@ -12,7 +12,7 @@ pipeline {
                                                  keyFileVariable: 'EC2_KEYFILE',
                                                  usernameVariable: 'EC2_USER')]) {
                     sh '''
-                        echo "✅ SSH key prepared for user: $EC2_USER"
+                        echo "SSH key prepared for user: $EC2_USER"
                         echo "Connecting to host: $EC2_HOST"
                     '''
                 }
@@ -28,11 +28,11 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no -i $EC2_KEYFILE $EC2_USER@$EC2_HOST '
                             set -e
                             if [ -d "django-notes-app" ]; then
-                                echo "📂 Repository exists, pulling latest changes..."
+                                echo "Repository exists, pulling latest changes..."
                                 cd django-notes-app
                                 git pull
                             else
-                                echo "⬇️ Cloning repository..."
+                                echo "⬇Cloning repository..."
                                 git clone https://github.com/rummannaqvi/django-notes-app.git
                                 cd django-notes-app
                             fi
@@ -50,7 +50,7 @@ pipeline {
                     sh """
                         ssh -o StrictHostKeyChecking=no -i $EC2_KEYFILE $EC2_USER@$EC2_HOST '
                             cd django-notes-app
-                            echo "🛑 Stopping old containers..."
+                            echo "Stopping old containers..."
                             docker compose down || true
                         '
                     """
@@ -79,10 +79,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Deployment completed successfully!"
+            echo "Deployment completed successfully!"
         }
         failure {
-            echo "❌ Deployment failed. Check logs."
+            echo "Deployment failed. Check logs."
         }
     }
 }
