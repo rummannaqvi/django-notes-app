@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django
+  template:
+    metadata:
+      labels:
+        app: django
+    spec:
+      containers:
+        - name: django
+          image: django-notes-app:latest
+          imagePullPolicy: Never   # Important when using local image with Minikube
+          command: ["/bin/sh", "-c"]
+          args:
+            - python manage.py migrate --no-input &&
+              gunicorn notesapp.wsgi:application --bind 0.0.0.0:8000
+          env:
+            - name: DB_NAME
+              value: test_db
+            - name: DB_USER
+              value: root
+            - name: DB_PASSWORD
+              value: root
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_HOST
+              value: mysql   # 👈 Must match your MySQL service name
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
