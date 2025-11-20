@@ -1,0 +1,42 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  # Step 1 — Checkout code (optional but good practice)
+  - checkout: self
+
+  # Step 2 — Prepare SSH key
+  - script: |
+      mkdir -p ~/.ssh
+      echo "$(EC2_SSH_KEY)" > ~/.ssh/ec2_key.pem
+      chmod 600 ~/.ssh/ec2_key.pem
+      ssh-keyscan -H $(EC2_HOST) >> ~/.ssh/known_hosts
+    displayName: "Setup SSH"
+
+  # Step 3 — SSH to EC2 and deploy
+  - script: |
+      ssh -i ~/.ssh/ec2_key.pem ubuntu@$(EC2_HOST) << 'EOF'
+        set -e
+
+        # Clone or update repo
+        if [ -d "django-notes-app" ]; then
+          cd django-notes-app
+          git pull
+        else
+          git clone https://github.com/rummannaqvi/django-notes-app.git
+          cd django-notes-app
+        fi
+
+        # Stop old containers
+        docker compose down || true
+
+        # Build & start new containers
+        docker compose build
+        docker compose up -d
+      EOF
+    displayName: "Deploy on EC2"
